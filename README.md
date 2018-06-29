@@ -32,6 +32,3 @@ After downloading the dat files you need to create a folder called `dataset ` an
   journal={arXiv preprint arXiv:1806.05946},
   year={2018}
 }</pre>
-
-## Note
-
