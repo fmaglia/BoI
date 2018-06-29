@@ -1,3 +1,34 @@
-# BoI
+# Bag of Indexes (BoI)
 
- g++ -o BoI BoI.cpp -lstdc++fs -std=c++14 -fopenmp -O2
+[[paper](https://arxiv.org/abs/1806.05946)] [[project](http://implab.ce.unipr.it/?page_id=787)]
+
+Bag of Indexes (BoI) is a C++ library, used for solving Approximate Nearest Neighbors (ANN) search problems
+
+![BoI_overview](http://implab.ce.unipr.it/wp-content/uploads/2018/06/BoI.png)
+
+## Datasets
+- Holidays+Flickr1M:
+- SIFT1M: 
+- GIST1M:
+
+## Installation
+* Requirements:
+  * G++ 5.4 or greater
+  * openmp
+* Build:
+g++ -o BoI BoI.cpp -lstdc++fs -std=c++14 -fopenmp -O2
+
+## Test
+./BoI SIFT1M 8 25 500 true ..
+
+## Reference
+
+> @article{magliani2018efficient,
+>  title={Efficient Nearest Neighbors Search for Large-Scale Landmark Recognition},
+>  author={Magliani, Federico and Fontanini, Tomaso and Prati, Andrea},
+>  journal={arXiv preprint arXiv:1806.05946},
+>  year={2018}
+> }
+
+## Note
+
