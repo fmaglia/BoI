@@ -9,7 +9,7 @@ Bag of Indexes (BoI) is a multi-index hashing C++ library, used for solving Appr
 LSH and multi-probe LSH are the only, at the moment, projection functions implemented.
 
 ## Datasets
-The files are binaries. They are created using a simple C++ script.
+The original dataset files are converted in binary through the application of a simple C++ script.
 - Holidays+Flickr1M:
 - [SIFT1M](https://drive.google.com/open?id=1w7doJHujhINbR6HXF73_H-udlxL5btiI)
 - [GIST1M](https://drive.google.com/open?id=13gnQlNUCdSIdnpZYDr3MUMp4vHQiyo4L) 
