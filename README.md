@@ -1,3 +1,3 @@
 # BoI
 
- g++ -o BoI RMAC_test_indexed.cpp -lstdc++fs -std=c++14 -fopenmp -O2
+ g++ -o BoI BoI.cpp -lstdc++fs -std=c++14 -fopenmp -O2
