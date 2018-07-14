@@ -10,8 +10,7 @@
 using namespace std;
 namespace fs = std::experimental::filesystem;
 
-int main(int argc, char* argv[])
-{
+int main(int argc, char* argv[]){
 
     //std::cout<<"example: ./BoI SIFT1M 8 100 500 true .."<<endl;
     
@@ -28,8 +27,7 @@ int main(int argc, char* argv[])
     int topN = stoi(argv[4]);
 
     string lastArgument = argv[5];
-    if (lastArgument=="false")
-        fastReRanking = false;
+    if (lastArgument=="false") fastReRanking = false;
     else if (lastArgument=="true")
         fastReRanking = true;
     else {
@@ -49,7 +47,7 @@ int main(int argc, char* argv[])
         globalVectorDimension = 128;
         q_results = 10000;
     }
-    else if (dataset=="GIST1M") {
+    else if (dataset=="GIST1M"){
         globalVectorDimension = 960;
         q_results = 1000;
     }
@@ -62,30 +60,24 @@ int main(int argc, char* argv[])
     cout <<"Variables' state"<<endl;
     cout <<"------------------------------------------------------------------------------------"<<endl;
 
-    if (debug)
-        cout <<"Debug ACTIVATED!"<<endl;
+    if (debug) cout <<"Debug ACTIVATED!"<<endl;
     cout <<"Dataset: "<<dataset<<endl;
 
     cout <<globalVectorDimension<<" d"<<endl <<endl;
 
-    if (mode=="lsh")
-        cout <<"BoI LSH indexing.  \n- Created "<<L<<" hash tables of "<<pow(2,hash_dimension)<<" rows"<<endl;
-    else if (mode=="multiProbe-lsh")
-        cout <<"BoI multi-Probe LSH indexing. \n- Created "<<L<<" hash tables of "<<pow(2,hash_dimension)<<" rows with neighborhood: "<<vicinato<<endl;
-    else if (mode=="multiProbe-lsh-bottleneck") {
+    if (mode=="lsh") cout <<"BoI LSH indexing.  \n- Created "<<L<<" hash tables of "<<pow(2,hash_dimension)<<" rows"<<endl;
+    else if (mode=="multiProbe-lsh") cout <<"BoI multi-Probe LSH indexing. \n- Created "<<L<<" hash tables of "<<pow(2,hash_dimension)<<" rows with neighborhood: "<<vicinato<<endl;
+    else if (mode=="multiProbe-lsh-bottleneck"){
         cout <<"BoI multi-Probe LSH indexing BOTTLENECK. \n- Created "<<L<<" hash tables of "<<pow(2,hash_dimension)<<" rows with neighborhood: "<<vicinato<<endl;
 
-        if (sublinear)
-            cout <<"- Sublinear reduction"<<endl;
-        else
-            cout <<"- Linear reduction"<<endl;
+        if (sublinear) cout <<"- Sublinear reduction"<<endl;
+        else cout <<"- Linear reduction"<<endl;
     }
 
     cout <<"- TopN: "<<topN<<endl;
-    if (fastReRanking)
-        cout << "fast re-ranking" << endl;
+    if (fastReRanking) cout << "fast re-ranking" << endl;
 
-    cout <<"------------------------------------------------------------------------------------"<<endl;
+    cout <<"------------------------------------------------------------------------------------"<<endl;  //toxic code
 
 
     vector <string> fileTestSet, fileTrainingSet;
@@ -100,10 +92,10 @@ int main(int argc, char* argv[])
     //precalculate the binary nearest neighbor
     vector <vector<int>> neighbor (0, vector <int>(0));
 
-    for (int i=0; i < pow(2, hash_dimension); ++i) {
+    for (int i=0; i < pow(2, hash_dimension); ++i){
         string binary = calculateBinary(i, hash_dimension);
         vector <int> vicini;
-        for (int v=1; v <= vicinato; ++v) {
+        for (int v=1; v <= vicinato; ++v){
             for (int j=0; j < hash_dimension; ++j) {
                 calculateNeighbors(vicini, binary, j, v);
             }
@@ -127,8 +119,8 @@ int main(int argc, char* argv[])
 
     vector <vector<float>> projectionVector (hash_dimension*L, vector<float>(globalVectorDimension));
 
-    for (int i=0; i<projectionVector.size(); ++i) {
-        for (int j=0; j<projectionVector[i].size(); ++j) {
+    for (int i=0; i<projectionVector.size(); ++i){
+        for (int j=0; j<projectionVector[i].size(); ++j){
             projectionVector[i][j] = distribution(generator);
         }
     }
@@ -144,7 +136,7 @@ int main(int argc, char* argv[])
     while (fileStream.read(reinterpret_cast<char*>(&f), sizeof(float))){
         VLAD_row.push_back(f);
         counter++;
-        if (counter == globalVectorDimension) {            
+        if (counter == globalVectorDimension){            
             if (fastReRanking)
                 VLAD_trainingSet.push_back(VLAD_row);
 
@@ -184,7 +176,7 @@ int main(int argc, char* argv[])
         VLAD_testSet.push_back(f);
         counter++;
 
-        if (counter == globalVectorDimension) {  
+        if (counter == globalVectorDimension){  
                       
             gapBucket = initialGap;
             vector <int> valueBucket = {68,37,8,1};
@@ -195,7 +187,7 @@ int main(int argc, char* argv[])
             vector <float> LucaImagePosition(trainingElements,0.0);      
             //auto s1 = std::chrono::high_resolution_clock::now();
 
-            for (int hashTables = 0; hashTables < L; ++hashTables) {
+            for (int hashTables = 0; hashTables < L; ++hashTables){
 
                 int offset = hashCode*hashTables;
                 int queryRetrieved = lsh_indexing(hash_dimension, VLAD_testSet, projectionVector, hashTables);
@@ -217,7 +209,7 @@ int main(int argc, char* argv[])
                     imagePosition.push_back(ranking{j,LucaImagePosition[j]});
 
             std::sort(imagePosition.begin(), imagePosition.end(),
-                        [](const ranking& a, const ranking& b) {
+                        [](const ranking& a, const ranking& b){
                     return a.weight > b.weight;
             });
 
@@ -233,7 +225,7 @@ int main(int argc, char* argv[])
 
                 auto position = imagePosition[r].index;
 
-                if (!fastReRanking) {
+                if (!fastReRanking){
                     vector <float> VLAD_row = readIthRow_binary_new(DbFileReader,globalVectorDimension, position);
                     imagePosition[r].weight = l2_norm_2vectors(VLAD_row,VLAD_testSet);
                 }
@@ -241,7 +233,7 @@ int main(int argc, char* argv[])
                     imagePosition[r].weight = l2_norm_2vectors(VLAD_trainingSet[position], VLAD_testSet);                
             }
 
-            std::sort(imagePosition.begin(), imagePosition.end(),[](const ranking& a, const ranking& b) {
+            std::sort(imagePosition.begin(), imagePosition.end(),[](const ranking& a, const ranking& b){
                     return a.weight < b.weight;
             });
 
@@ -256,13 +248,11 @@ int main(int argc, char* argv[])
                 return 0;
             }
 
-            for (int r=0; r < imagePosition.size(); r++) 
-                query_results[count].push_back(imagePosition[r].index);
+            for (int r=0; r < imagePosition.size(); r++) query_results[count].push_back(imagePosition[r].index);
                 
             count++;
 
-            if (count%(q_results/3)==0 && count!=0)
-                cout << count<<" on "<<q_results<<endl;
+            if (count%(q_results/3)==0 && count!=0) cout << count<<" on "<<q_results<<endl;
         
         counter = 0;
         VLAD_testSet.clear();  
@@ -285,36 +275,32 @@ int main(int argc, char* argv[])
 
     string url;
 
-    if (debug) {
+    if (debug){
         url = "_DEBUG";
     }
     else {
 
         url = "BoI"+mode;
 
-        if (mode=="lsh") {
+        if (mode=="lsh"){
             hash_dimension = pow(2,hash_dimension);
             url+=to_string(hash_dimension)+"_L"+to_string(L);
         }
-        else if (mode=="multiProbe-lsh") {
+        else if (mode=="multiProbe-lsh"){
             hash_dimension = pow(2,hash_dimension);
             url+=to_string(hash_dimension)+"_L"+to_string(L);
         }
-        else if (mode=="multiProbe-lsh-bottleneck") {
+        else if (mode=="multiProbe-lsh-bottleneck"){
             hash_dimension = pow(2,hash_dimension);
             url+=to_string(hash_dimension)+"_L"+to_string(L);
 
-            if (sublinear)
-                url += "_sublinearReduction";
-            else
-                url += "_linearReduction";
-
+            if (sublinear) url += "_sublinearReduction";
+            else url += "_linearReduction";
         }
 
         url+="_top"+to_string(topN);
 
-        if (fastReRanking)
-            url += "_fast";
+        if (fastReRanking) url += "_fast";
     }
 
     string result_url = home+"/results/"+dataset+"/"+url;
