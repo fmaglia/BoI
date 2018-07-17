@@ -1,6 +1,6 @@
 # Bag of Indexes (BoI)
 
-[[paper](https://arxiv.org/abs/1806.05946)] [[project](http://implab.ce.unipr.it/?page_id=787)][[poster](http://implab.ce.unipr.it/wp-content/uploads/2018/07/conference_poster_6.pdf)]
+[[paper](https://arxiv.org/abs/1806.05946)] [[project](http://implab.ce.unipr.it/?page_id=787)] [[poster](http://implab.ce.unipr.it/wp-content/uploads/2018/07/conference_poster_6.pdf)]
 
 Bag of Indexes (BoI) is a multi-index hashing C++ library, used for solving Approximate Nearest Neighbors (ANN) search problems. In the belove figure, an example of BoI's working is presented.
 
