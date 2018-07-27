@@ -44,18 +44,25 @@ int main(int argc, char* argv[])
     int totQuery = L/4;
     int globalVectorDimension;
     int q_results = 0;
+    int topRecall = 0;
 
     if (dataset=="SIFT1M" || dataset=="SIFT1B"){
         globalVectorDimension = 128;
         q_results = 10000;
+        if (dataset == "SIFT1M")
+            topRecall = 100;
+        else
+            topRecall = 1000;
     }
     else if (dataset=="GIST1M") {
         globalVectorDimension = 960;
         q_results = 1000;
+        topRecall = 100;
     }
     else if (dataset=="DEEP1B"){
         q_results = 10000;
         globalVectorDimension = 96;
+        topRecall = 1000;
     }
     
 
@@ -111,6 +118,11 @@ int main(int argc, char* argv[])
         vicini.insert(vicini.begin(),i);
         neighbor.push_back(vicini);
     }
+    /*std::cout<<"Vicini di 1"<<endl;
+    for (int j=0; j < neighbor[1].size(); ++j)
+        std::cout<<"Vicino n."<<j<<": "<<neighbor[1][j]<<endl;
+
+    return 0;*/
 
     int gapBucket = neighbor[0].size();
     int initialGap = gapBucket;
@@ -148,8 +160,12 @@ int main(int argc, char* argv[])
             if (fastReRanking)
                 VLAD_trainingSet.push_back(VLAD_row);
 
-            for (int hashTables = 0; hashTables < L; ++hashTables) 
-                lsh_index[lsh_indexing(hash_dimension, VLAD_row, projectionVector, hashTables)].push_back(count);
+            for (int hashTables = 0; hashTables < L; ++hashTables) {
+                int index = lsh_indexing(hash_dimension, VLAD_row, projectionVector, hashTables);
+                lsh_index[index].push_back(count);
+            }
+
+            //std::cout<<endl<<"Db elem # "<<count<<endl;
             
             count++;
             trainingElements++;
@@ -159,7 +175,7 @@ int main(int argc, char* argv[])
 
     }
 
-        fileStream.close();   
+    fileStream.close();   
 
 
     auto tEncoding2 = std::chrono::high_resolution_clock::now();
@@ -177,7 +193,8 @@ int main(int argc, char* argv[])
 
     std::ifstream fileStreamQuery(fileTestSet[0],std::ios::binary);
     count = 0;
-    float lower_bound = L * 0.2;
+    float lower_bound = L * 0.05;
+    //float super_lower_bound = L * 0.07;
     counter = 0;
     std::vector <float> VLAD_testSet;
     while (fileStreamQuery.read(reinterpret_cast<char*>(&f), sizeof(float))){
@@ -187,7 +204,12 @@ int main(int argc, char* argv[])
         if (counter == globalVectorDimension) {  
                       
             gapBucket = initialGap;
-            vector <int> valueBucket = {68,37,8,1};
+            vector <int> valueBucket;
+            vector <int> checkBuckets;
+            calculateBuckets(valueBucket, hash_dimension);
+  
+            checkBuckets = valueBucket;
+            //std::cout<<"query "<<count<<" "<<valueBucket[0]<<endl;
             //vector <int> valueBucket = {37,22,8,1};      
             //vector <int> valueBucket = {8, 5, 3, 1};
     
@@ -206,53 +228,88 @@ int main(int argc, char* argv[])
                      //gapBucket -= 2;
                 }
                 
-                searchMultiProbeLSH(neighbor, lsh_index, queryRetrieved, LucaImagePosition, gapBucket, offset, hash_dimension);                
+                searchMultiProbeLSH(neighbor, lsh_index, queryRetrieved, LucaImagePosition, gapBucket, offset, hash_dimension, checkBuckets);                
             }
+            //auto s2 = std::chrono::high_resolution_clock::now();
+            //std::cout << "search "<<std::chrono::duration_cast<std::chrono::milliseconds>(s2-s1).count() << "\n";
 
             vector<ranking> imagePosition;
             //auto s3 = std::chrono::high_resolution_clock::now();
 
-            for (int j=0; j<LucaImagePosition.size(); ++j)
+            for (int j=0; j<LucaImagePosition.size(); ++j){
+                /*if (j==LucaImagePosition.size()/2) {
+                    if (imagePosition.size() >= topN)
+                        lower_bound *= 2.5;
+                    else 
+                        lower_bound /= 2;
+                }*/
+
                 if (LucaImagePosition[j] > lower_bound)
                     imagePosition.push_back(ranking{j,LucaImagePosition[j]});
+
+            }
+            //std::cout << "query "<<count<<" imagePosition - elements: "<<imagePosition.size()<<endl;
+
+            /*if (imagePosition.size() < topN){
+                for (int j=0; j<LucaImagePosition.size(); ++j){
+
+                    if (imagePosition.size() >= topN)
+                        break;
+ 
+                    if (LucaImagePosition[j] > super_lower_bound && LucaImagePosition[j] <= lower_bound)
+                        imagePosition.push_back(ranking{j,LucaImagePosition[j]});
+
+                }
+                std::cout << "query "<<count<<" after re-insert imagePosition - elements: "<<imagePosition.size()<<endl;
+            }*/
 
             std::sort(imagePosition.begin(), imagePosition.end(),
                         [](const ranking& a, const ranking& b) {
                     return a.weight > b.weight;
             });
 
+            //auto s4 = std::chrono::high_resolution_clock::now();
+            //std::cout << "sort weight-based "<<std::chrono::duration_cast<std::chrono::milliseconds>(s4-s3).count() << "\n";
 
             //re-ranking according to euclidean distance
 
-            if (imagePosition.size()>topN)
+
+            if (imagePosition.size() > topN)
                 imagePosition.resize(topN);
+
+            if (dataset != "SIFT1B" && dataset != "DEEP1B" && topN > 100 ) {
                 
-            auto tReRanking1 = std::chrono::high_resolution_clock::now();
+                auto tReRanking1 = std::chrono::high_resolution_clock::now();
 
-            for (int r=0; r < imagePosition.size(); r++) {
+                for (int r=0; r < imagePosition.size(); r++) {
 
-                auto position = imagePosition[r].index;
+                    auto position = imagePosition[r].index;
 
-                if (!fastReRanking) {
-                    vector <float> VLAD_row = readIthRow_binary_new(DbFileReader,globalVectorDimension, position);
-                    imagePosition[r].weight = l2_norm_2vectors(VLAD_row,VLAD_testSet);
+                    if (!fastReRanking) {
+                        vector <float> VLAD_row = readIthRow_binary_new(DbFileReader,globalVectorDimension, position);
+                        imagePosition[r].weight = l2_norm_2vectors(VLAD_row,VLAD_testSet);
+                    }
+                    else
+                        imagePosition[r].weight = l2_norm_2vectors(VLAD_trainingSet[position], VLAD_testSet);                
                 }
-                else
-                    imagePosition[r].weight = l2_norm_2vectors(VLAD_trainingSet[position], VLAD_testSet);                
+
+                std::sort(imagePosition.begin(), imagePosition.end(),[](const ranking& a, const ranking& b) {
+                        return a.weight < b.weight;
+                });
+
+                auto tReRanking2 = std::chrono::high_resolution_clock::now();
+
+                std::chrono::duration<double, std::milli> timeR = tReRanking2 - tReRanking1;
+
+                reRankingTime += (timeR.count());
             }
 
-            std::sort(imagePosition.begin(), imagePosition.end(),[](const ranking& a, const ranking& b) {
-                    return a.weight < b.weight;
-            });
-
-            auto tReRanking2 = std::chrono::high_resolution_clock::now();
-
-            std::chrono::duration<double, std::milli> timeR = tReRanking2 - tReRanking1;
-
-            reRankingTime += (timeR.count());
-
-            if (imagePosition.size() < topN){
-                std::cout << "Problem at the query "<<count<<" with only "<<imagePosition.size()<<" elements"<<endl;
+            if (imagePosition.size() < topN && imagePosition.size() >= topRecall){
+                std::cout << "Query "<<count<<" with "<<imagePosition.size()<<" less elements than topN"<<endl;
+                //return 0;
+            }
+            else if (imagePosition.size() < topRecall){
+                std::cout <<"ERROR at query "<<count<<endl;
                 return 0;
             }
 
@@ -265,7 +322,9 @@ int main(int argc, char* argv[])
                 cout << count<<" on "<<q_results<<endl;
         
         counter = 0;
-        VLAD_testSet.clear();  
+        VLAD_testSet.clear();
+        imagePosition.clear();
+        LucaImagePosition.clear();
         }
         
     }
