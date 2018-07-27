@@ -42,7 +42,7 @@ The following table represents the results obtained through the application of B
  In every test, the neighborhood is setted to 3.
 
 | Configuration        | 1           | 10  | 100 | avg retrieval time |
-| ------------- |:-------------:| :-----:| :---:| ---------:|
+| :------------- |:-------------:| :-----:| :---:| :---------:|
 | δ = 16, L = 25, top500 | 90.50%   | 91.57% | 91.57% | 6 msec |
 | δ = 15, L = 50, top500 | 98.36%   | 99.19% | 99.19% | 18 msec |
 | δ = 15, L = 50, top10k | 99.20%   | 100%   | 100%   | 18 msec |
@@ -53,10 +53,11 @@ The reason behind the same retrieval time changing the top elements to re-rank i
 ### GIST1M
 
 | Configuration        | 1           | 10  | 100 | avg retrieval time |
-| ------------- |:-------------:| :-----:| :---:| ---------:|
+| :------------- |:-------------:| :-----:| :---:| :---------:|
 | δ = 16, L = 100, top500 | 79.80%   | 80.80% | 80.80% | 60 msec |
 | δ = 16, L = 100, top10k | 97.40%   | 98.50%   | 98.50%   | 100 msec |
 
+All the experiments are evaluated following the Recall@R, that is the average rate of queries for which the 1-nearest neighbor is ranked in the top R positions.
 
 ## Reference
 
