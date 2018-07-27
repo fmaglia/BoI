@@ -23,7 +23,40 @@ After downloading the dat files you need to create a folder called `dataset ` an
 ` g++ -o BoI BoI.cpp -lstdc++fs -std=c++14 -fopenmp -O2 `
 
 ## Test
-` ./BoI SIFT1M 8 25 500 true .. `
+` ./BoI SIFT1M 16 25 500 true .. `
+
+In the previous command the values of the parameters are:
+* δ = 16;
+* L = 25;
+* topN = 500;
+* fast re-ranking = true (loading descriptors from RAM).
+
+## Results
+
+#SIFT1M
+The following table represents the results obtained through the application of BoI adaptive multi-probe LSH, trying to change some parameters: 
+ * L: number of hash tables;
+ * δ: number of buckets per hash table (hash dimension);
+ * topN: number of top elements to re-rank based on original distance (usually Euclidean distance).
+ 
+ In every test, the neighborhood is setted to 3.
+
+| Configuration        | 1           | 10  | 100 | avg retrieval time |
+| ------------- |:-------------:| :-----:| :---:| -----------:|
+| δ = 16, L = 25, top500 | 90.50%   | 91.57% | 91.57% | 6 msec |
+| δ = 15, L = 50, top500 | 98.36%   | 99.19% | 99.19% | 18 msec |
+| δ = 15, L = 50, top10k | 99.20%   | 100%   | 100%   | 18 msec |
+
+The reduced average retrieval time is obtained through the multi-threading and the cut-off (an unsuperivesd reduction of the BoI structure). For more info see the paper cited in the Reference section.
+The reason behind the same retrieval time changing the top elements to re-rank is due to the speed of loading files from RAM memory.
+
+#GIST1M
+
+| Configuration        | 1           | 10  | 100 | avg retrieval time |
+| ------------- |:-------------:| :-----:| :---:| -----------:|
+| δ = 16, L = 100, top500 | 79.80%   | 80.80% | 80.80% | 60 msec |
+| δ = 16, L = 100, top10k | 97.40%   | 98.50%   | 98.50%   | 100 msec |
+
 
 ## Reference
 
