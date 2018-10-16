@@ -24,7 +24,7 @@ struct ranking_final {
 float l2_norm_2vectors(std::vector<float> &v, std::vector<float> &u) {
     float accum = 0.;
     for (int i = 0; i < v.size(); ++i) {
-        accum += pow(v[i] - u[i],2);
+        accum += (v[i] - u[i])*(v[i] - u[i]);
     }
     return sqrt(accum);
 }
